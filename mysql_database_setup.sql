@@ -3,9 +3,12 @@
 # All the table creation queries are here.
 # DROPS THE TABLE IF ALREADY EXISTING. ALL DATA IS DELETED
 # Usage:
-# 1. Either copy the file to EC2, login to mysql shell, and then run using SOURCE <file_name>
+# Copy SQL file to root directory of Amazon EC2:
+# scp -i server-key.pem -r /Users/rishi/Documents/smart-home-manager/docs/mysql_database_setup.sql ubuntu@ec2-54-193-102-49.us-west-1.compute.amazonaws.com:~
+#
+# 1. Either login to mysql shell, and then run using SOURCE <file_name>
 # 2. Or use
-# mysql -h ec2-54-193-102-49.us-west-1.compute.amazonaws.com -P 3306 -u ridr -p < file_name.sql
+# mysql -h ec2-54-193-102-49.us-west-1.compute.amazonaws.com -P 3306 -u ridr -p < mysql_database_setup.sql
 #
 # Naming conventions to follow:
 # 1. All names in small caps
@@ -31,24 +34,27 @@ CREATE TABLE user (
     unique(email)
 );
 
-CREATE TABLE interests (
-    constraint fk_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
+CREATE TABLE interest (
     activity varchar(30) not null,
-    primary_key(user_id, activity)
+    user_id int not null,
+    constraint fk_interest_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
+    primary key(user_id, activity)
 );
 
-CREATE TABLE group (
+CREATE TABLE home (
     id int not null auto_increment,
     name varchar(15) not null,
     photo_id int not null,
-    primary_key(id),
+    primary key(id),
     unique(photo_id)
 );
 
-CREATE TABLE group_members (
-    constraint fk_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
-    constraint fk_group_id foreign key(group_id) references group(id) on delete cascade on update cascade,
-    primary_key(user_id, group_id)
+CREATE TABLE home_member (
+    user_id int not null,
+    home_id int not null,
+    constraint fk_home_member_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
+    constraint fk_home_member_home_id foreign key(home_id) references home(id) on delete cascade on update cascade,
+    primary key(user_id, home_id)
 );
 
 CREATE TABLE task (
@@ -58,25 +64,32 @@ CREATE TABLE task (
     start_date datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     due_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     type varchar(15) not null,
-    constraint fk_group_id foreign key(group_id) references group(id) on delete cascade on update cascade,
-    primary_key(id, group_id)
+    home_id int not null,
+    constraint fk_task_home_id foreign key(home_id) references home(id) on delete cascade on update cascade,
+    primary key(id, home_id)
 );
 
 CREATE TABLE task_assigned_to (
-    constraint fk_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
-    constraint fk_task_id foreign key(task_id) references task(id) on delete cascade on update cascade,
-    constraint fk_group_id foreign key(group_id) references group(id) on delete cascade on update cascade,
+    user_id int not null,
+    home_id int not null,
+    task_id int not null,
+    constraint fk_task_assigned_to_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
+    constraint fk_task_assigned_to_task_id foreign key(task_id) references task(id) on delete cascade on update cascade,
+    constraint fk_task_assigned_to_home_id foreign key(home_id) references home(id) on delete cascade on update cascade,
     date datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     completed boolean,
-    primary_key(user_id, task_id, group_id)
+    primary key(user_id, task_id, home_id)
 );
 
 CREATE TABLE users_involved_task (
-    constraint fk_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
-    constraint fk_task_id foreign key(task_id) references task(id) on delete cascade on update cascade,
-    constraint fk_group_id foreign key(group_id) references group(id) on delete cascade on update cascade,
-    primary_key(user_id, task_id, group_id)
+    user_id int not null,
+    task_id int not null,
+    home_id int not null,
+    constraint fk_users_involved_task_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
+    constraint fk_users_involved_task_task_id foreign key(task_id) references task(id) on delete cascade on update cascade,
+    constraint fk_users_involved_task_home_id foreign key(home_id) references home(id) on delete cascade on update cascade,
+    primary key(user_id, task_id, home_id)
 );
 
 SET autocommit=1;
