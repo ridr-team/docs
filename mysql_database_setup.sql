@@ -28,6 +28,7 @@ CREATE TABLE user (
     password varchar(15) not null,
     phone_number varchar(10) not null,
     photo_id int not null,
+    signup_from varchar(10) not null,
     primary key(id),
     unique(phone_number),
     unique(photo_id),
@@ -41,7 +42,7 @@ CREATE TABLE interest (
     primary key(user_id, activity)
 );
 
-CREATE TABLE home (
+CREATE TABLE user_group (
     id int not null auto_increment,
     name varchar(15) not null,
     photo_id int not null,
@@ -49,12 +50,12 @@ CREATE TABLE home (
     unique(photo_id)
 );
 
-CREATE TABLE home_member (
+CREATE TABLE group_member (
     user_id int not null,
-    home_id int not null,
-    constraint fk_home_member_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
-    constraint fk_home_member_home_id foreign key(home_id) references home(id) on delete cascade on update cascade,
-    primary key(user_id, home_id)
+    group_id int not null,
+    constraint fk_user_group_member_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
+    constraint fk_group_member_group_id foreign key(group_id) references user_group(id) on delete cascade on update cascade,
+    primary key(user_id, group_id)
 );
 
 CREATE TABLE task (
@@ -64,32 +65,32 @@ CREATE TABLE task (
     start_date datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     due_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     type varchar(15) not null,
-    home_id int not null,
-    constraint fk_task_home_id foreign key(home_id) references home(id) on delete cascade on update cascade,
-    primary key(id, home_id)
+    group_id int not null,
+    constraint fk_task_group_id foreign key(group_id) references user_group(id) on delete cascade on update cascade,
+    primary key(id, group_id)
 );
 
 CREATE TABLE task_assigned_to (
     user_id int not null,
-    home_id int not null,
+    group_id int not null,
     task_id int not null,
     constraint fk_task_assigned_to_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
     constraint fk_task_assigned_to_task_id foreign key(task_id) references task(id) on delete cascade on update cascade,
-    constraint fk_task_assigned_to_home_id foreign key(home_id) references home(id) on delete cascade on update cascade,
+    constraint fk_task_assigned_to_group_id foreign key(group_id) references user_group(id) on delete cascade on update cascade,
     date datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     completed boolean,
-    primary key(user_id, task_id, home_id)
+    primary key(user_id, task_id, group_id)
 );
 
 CREATE TABLE users_involved_task (
     user_id int not null,
     task_id int not null,
-    home_id int not null,
+    group_id int not null,
     constraint fk_users_involved_task_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
     constraint fk_users_involved_task_task_id foreign key(task_id) references task(id) on delete cascade on update cascade,
-    constraint fk_users_involved_task_home_id foreign key(home_id) references home(id) on delete cascade on update cascade,
-    primary key(user_id, task_id, home_id)
+    constraint fk_users_involved_task_group_id foreign key(group_id) references user_group(id) on delete cascade on update cascade,
+    primary key(user_id, task_id, group_id)
 );
 
 SET autocommit=1;
