@@ -17,8 +17,8 @@
 ##
 
 SET foreign_key_checks = 0;
-DROP database if exists smart_home_manager;
-CREATE database smart_home_manager;
+#DROP database if exists smart_home_manager;
+#CREATE database smart_home_manager;
 use smart_home_manager;
 
 CREATE TABLE user (
@@ -63,7 +63,6 @@ CREATE TABLE task (
     name varchar(15) not null,
     frequency varchar(15) not null,
     start_date datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    due_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     type varchar(15) not null,
     group_id int not null,
     constraint fk_task_group_id foreign key(group_id) references user_group(id) on delete cascade on update cascade,
@@ -77,8 +76,8 @@ CREATE TABLE task_assigned_to (
     constraint fk_task_assigned_to_user_id foreign key(user_id) references user(id) on delete cascade on update cascade,
     constraint fk_task_assigned_to_task_id foreign key(task_id) references task(id) on delete cascade on update cascade,
     constraint fk_task_assigned_to_group_id foreign key(group_id) references user_group(id) on delete cascade on update cascade,
-    date datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    assigned_date datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    due_date datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
     completed boolean,
     primary key(user_id, task_id, group_id)
 );
@@ -94,3 +93,15 @@ CREATE TABLE users_involved_task (
 );
 
 SET autocommit=1;
+
+
+
+# Test rows for table task and user_group
+
+INSERT INTO user_group (name, photo_id) VALUES ('33 South 105', 3212);
+INSERT INTO user_group (name, photo_id) VALUES ('Road trip', 2124);
+
+INSERT INTO task (name, frequency, start_date, due_date, type, group_id) VALUES ('Trash', 'Weekly', CURDATE(), CURDATE(), 'Non-monetary', 3212);
+INSERT INTO task (name, frequency, start_date, due_date, type, group_id) VALUES ('Bill payment', 'Monthly', CURDATE(), CURDATE(), 'Monetary', 3212);
+INSERT INTO task (name, frequency, start_date, due_date, type, group_id) VALUES ('Kitchen Clean', 'Weekly', CURDATE(), CURDATE(), 'Non-monetary', 3212);
+INSERT INTO task (name, frequency, start_date, due_date, type, group_id) VALUES ('Buy stuff', 'Once', CURDATE(), CURDATE(), 'Monetary', 2124);
